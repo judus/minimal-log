@@ -1,0 +1,29 @@
+{
+  "name": "minimal/log",
+  "description": "Minimal component",
+  "keywords": [
+    "minimal",
+    "component"
+  ],
+  "license": "MIT",
+  "type": "project",
+  "authors": [
+    {
+      "name": "Julien Duseyau",
+      "email": "julien.duseyau@gmail.com"
+    }
+  ],
+  "require-dev": {
+    "phpunit/phpunit": "4.*"
+  },
+  "autoload": {
+    "psr-4": {
+      "Maduser\\Minimal\\Log\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Maduser\\Minimal\\Log\\Tests\\": "tests/"
+    }
+  }
+}
