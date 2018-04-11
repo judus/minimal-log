@@ -38,6 +38,11 @@ class Logger
     private $dir = '';
 
     /**
+     * @var string|callable
+     */
+    private $filename;
+
+    /**
      * @var string
      */
     private $fileExt = '.log';
@@ -46,6 +51,11 @@ class Logger
      * @var int
      */
     private $level = 0;
+
+    /**
+     * @var callable
+     */
+    private $lineFormat;
 
     /**
      * @var bool
@@ -68,6 +78,54 @@ class Logger
     public function setDir(string $dir)
     {
         $this->dir = rtrim($dir, '/') . '/';
+
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getLineFormat()
+    {
+        return $this->lineFormat;
+    }
+
+    /**
+     * @param mixed $lineFormat
+     *
+     * @return Logger
+     */
+    public function setLineFormat($lineFormat)
+    {
+        $this->lineFormat = $lineFormat;
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getFilename(): string
+    {
+        if (is_callable($this->filename)) {
+            return $this->filename();
+        }
+
+        if ($this->filename) {
+            return $this->filename;
+        }
+
+        return strftime('%Y-%m-%d') . $this->getFileExt();
+    }
+
+    /**
+     * @param string|callable $filename
+     *
+     * @return Logger
+     */
+    public function setFilename($filename)
+    {
+        $this->filename = $filename;
 
         return $this;
     }
@@ -200,16 +258,12 @@ class Logger
     {
         if ($level <= $this->level) {
 
-            $time = time();
-            $date = strftime('%Y-%m-%d', $time);
-            $datetime = strftime('%Y-%m-%d %H:%M:%S', $time);
-
             if ($this->isWithBenchmarks()) {
                 $msg = $this->interval() . $msg;
             }
 
-            $line = $datetime . ' | ' . self::LEVELS[$level] . ' | ' . $msg . PHP_EOL;
-            $file = $this->getFile($date);
+            $file = $this->getFile();
+            $line = $this->getLine($level, $msg, $data);
 
             if (file_exists($file)) {
                 file_put_contents($file, $line, FILE_APPEND | LOCK_EX);
@@ -224,9 +278,41 @@ class Logger
      *
      * @return string
      */
-    protected function getFile(string $date): string
+    public function getFile(): string
     {
-        return $this->getDir() . $date . $this->getFileExt();
+        return $this->getDir() . $this->getFilename();
+    }
+
+    /**
+     * @param int    $level
+     * @param string $msg
+     * @param null   $data
+     *
+     * @return string
+     */
+    public function getLine(int $level, string $msg, $data = null)
+    {
+        if (is_callable($this->lineFormat)) {
+            $line = $this->lineFormat;
+            return $line($level, $msg, $data);
+        }
+
+        return $this->formatLine($level, $msg);
+    }
+
+    /**
+     * @param int    $level
+     * @param string $msg
+     *
+     * @return string
+     */
+    public function formatLine(int $level, string $msg)
+    {
+        return
+            strftime('%Y-%m-%d %H:%M:%S')
+            . ' | ' . self::LEVELS[$level]
+            . ' | ' . $msg
+            . PHP_EOL;
     }
 
     /**
@@ -240,4 +326,5 @@ class Logger
 
         return '';
     }
+
 }
