@@ -16,7 +16,7 @@ class LoggerTest extends TestCase
     /**
      *
      */
-    public function setUp()
+    public function setUp(): void
     {
         $this->logger = new Logger(__DIR__ . '/../testdir', 5, true);
     }
